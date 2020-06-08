@@ -27,19 +27,20 @@ public:
 };
 
 template <class T, class O>
-struct LIST{
-	NODE<T>* head;
+struct LIST {
+	NODE<T>* head, *end;
 	O order;
 
 	LIST() {
 		head = NULL;
+		end = NULL;
 	}
 
 	~LIST() {
 		NODE<T>* a;
 		NODE<T>* b;
 		a = head;
-		while (a) {
+		while (a != end) {
 			b = a->next;
 			delete a;
 			a = b;
@@ -50,12 +51,15 @@ struct LIST{
 	bool find(T val, NODE<T>*& p) {
 		NODE<T>* temp = head;
 		p = temp;
-		while (temp && order(temp ->val, val)) {
-			if (temp->val == val) {	
+		while (temp && order(temp->val, val)) {
+			if (temp->val == val) {
 				return 1;
 			}
 			p = temp;
 			temp = temp->next;
+			if (temp == head) {
+				return 0;
+			}
 		}
 		return 0;
 	}
@@ -63,11 +67,20 @@ struct LIST{
 	bool add(T val) {
 		NODE<T>* p = NULL;
 		if (!find(val, p)) {
-			if (!p || order(val, p->val)) {
+			if (!p) {
 				head = new NODE<T>(val, head);
+				end = head;
+				head->next = head;
+			}
+			else if (order(val, p->val) && p == head) {
+				head = new NODE<T>(val, head);
+				end->next = head;
 			}
 			else {
-				p -> next = new NODE<T>(val, p->next);
+				p->next = new NODE<T>(val, p->next);
+				if (p->next->next == head) {
+					end = p->next;
+				}
 			}
 			return 1;
 		}
@@ -77,20 +90,26 @@ struct LIST{
 	bool del(T val) {
 		NODE<T>* p = NULL;
 		if (find(val, p)) {
-			if (p->val == val) {
-				NODE<T>* aux = p;
-				head = p->next;
-				delete aux;
-				return 1;
+			if (p == head && p->val == val) {
+				head = head->next;
+				end->next = head;
+				delete p;
 			}
-			else if (p->next->next == NULL) {
-				p->next = NULL;
-				return 1;
+			else if (p == head && order(p->val, val)) {
+				NODE<T>* temp = p->next;
+				p->next = p->next->next;
+				delete temp;
+			}else if (p->next == end) {
+				NODE<T>* temp = p->next;
+				end = p;
+				p->next = head;
+				delete temp;
 			}
-			NODE<T>* aux = p ->next;
-			p->next = p->next->next;
-			delete aux;
-			return 1;
+			else {
+				NODE<T>* temp = p->next;
+				p->next = p->next->next;
+				delete temp;
+			}
 		}
 		return 0;
 	}
@@ -98,17 +117,20 @@ struct LIST{
 	void print() {
 		NODE<T>* p = head;
 		while (p) {
-			cout << p->val<< " -> ";
+			cout << p->val << " -> ";
 			p = p->next;
+			if (p == head) {
+				break;
+			}
 		}
-		cout <<"NULL"<< endl;
+		cout << endl;
 	}
 };
 
 bool menu() {
-	char x;
+	int x;
 	int accion;
-	LIST<char, Cgreater> l;
+	LIST<int, Cless> l;
 
 	while (1) {
 		system("cls");
